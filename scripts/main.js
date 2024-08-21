@@ -1,8 +1,8 @@
-const elemSize = 30;
-const canvasWidth = 30*elemSize;
-const canvasHeight = 35*elemSize;
-const startX = 15*elemSize;
-const startY = 17*elemSize;
+const elemSize = 60;
+const canvasWidth = 900;
+const canvasHeight = 1200;
+const startX = 10*elemSize;
+const startY = 10*elemSize;
 const prize_value = 10;
 
 function getRandomInt(max) {
@@ -25,10 +25,10 @@ function sleep(ms) {
 
 class Game {
   constructor(snakeHead, snakeTail) {
-    this.score = 0;
+    this.totalScore = 0;
     this.gameOver = false;
     this.snakeHead = snakeHead;
-    this.tail = snakeTail;
+    this.snakeTail = snakeTail;
     this.length = 1;
     this.prize = new Square("red", getRandomInt(canvasWidth/elemSize)*elemSize, getRandomInt(canvasHeight/elemSize)*elemSize);
   }
@@ -36,16 +36,16 @@ class Game {
   checkRectContainsOtherRect(a, b) {
     console.log("NOT IMPLEMENTED")
     return !(
-      b.getX() < a.getX() ||
-      b.getY() < a.getY() ||
-      b.getX() + elemSize > a.getX() + elemSize ||
-      b.getY() + elemSize > a.getY() + elemSize
+      b.x < a.x ||
+      b.y < a.y ||
+      b.x + elemSize > a.x + elemSize ||
+      b.y + elemSize > a.y + elemSize
     )
   }
 
   checkGameOver() {
     // Hit a wall
-    if((this.snakeHead.getX() == 0) || (this.snakeHead.getX() + elemSize == canvasWidth) || (this.snakeHead.getY() == 0) || (this.snakeHead.getY() + elemSize == canvasHeight)) {
+    if((this.snakeHead.x == -elemSize) || (this.snakeHead.x == canvasWidth) || (this.snakeHead.y == -elemSize) || (this.snakeHead.y == canvasHeight)) {
       this.gameOver = true;
       console.log("game over")
     }
@@ -62,31 +62,10 @@ class Game {
 
   checkPrize() {
     // Check if there is a prize where the snakehead went, generate new prize if necessary
-    if((this.snakeHead.getX() == this.prize.getX()) && (this.snakeHead.getY() == this.prize.getY())) {
-      // Update score value
-      this.score += prize_value;
-      document.getElementById("score").innerHTML = this.score;
-      // Update length of last tail
-      this.tails[this.tails.length-1].length += 1;
-      // Generate new prize
-      this.prize = new Square("red", getRandomInt(canvasWidth/elemSize)*elemSize, getRandomInt(canvasHeight/elemSize)*elemSize);
+    if((this.snakeHead.x == this.prize.x) && (this.snakeHead.y == this.prize.y)) {
+      return true;
     }
-  }
-
-  updatePrize() {
-    this.prize.updateSquare("red", this.prize.getX(), this.prize.getY(), elemSize, elemSize)
-  }
-
-  drawSnake() {
-    console.log(this.snakeHead)
-    console.log(this.tail)
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    while(!!tail.parent) {
-      tail.updateSquare("black", tail.parent.getX(), tail.parent.getY(), tail.getWidth(), tail.getHeight());
-      tail = tail.parent;
-      console.log(tail)
-    }
-  this.snakeHead.updateHead()
+    return false
   }
 }
 
@@ -126,7 +105,7 @@ class SnakeHead extends Square {
     this.direction = newDirection;
   }
 
-  updateHead() {
+  moveHead() {
     const newX = {
       "up": this.x,
       "down": this.x,
@@ -143,7 +122,7 @@ class SnakeHead extends Square {
   }
 }
 
-class SnakeBody extends Square {
+class SnakeTail extends Square {
   constructor(x, y, parent) {
     super("black", x, y);
     this.parent = parent;
@@ -151,7 +130,7 @@ class SnakeBody extends Square {
     this.alignment = "vertical";
   }
 
-  // getX() {
+  // x {
   //   if(this.parent.direction === "left") {
   //     return this.parent.x+this.length*elemSize;
   //   }
@@ -163,7 +142,7 @@ class SnakeBody extends Square {
   //   }
   // }
 
-  // getY() {
+  // y {
   //   if(this.parent.direction === "down") {
   //     return this.parent.y-this.length*elemSize;
   //   }
@@ -194,10 +173,6 @@ class SnakeBody extends Square {
       return elemSize;
     }
   }
-
-  updateTail() {
-    this.updateSquare("black", this.getX(), this.getY(), this.getWidth(), this.getHeight());
-  }
 }
 
 
@@ -206,29 +181,29 @@ let c = document.getElementById("snakeCanvas");
 let ctx = c.getContext("2d");
 
 function calculateSnakeDirection(mouseX, mouseY, snakeHead) {
-  const xDiff = Math.abs(mouseX - snakeHead.getX());
-  const yDiff = Math.abs(mouseY - snakeHead.getY());
+  const xDiff = Math.abs(mouseX - snakeHead.x);
+  const yDiff = Math.abs(mouseY - snakeHead.y);
   let newDirection;
-  if((mouseX - snakeHead.getX() < 0) && (xDiff > yDiff)) {
+  if((mouseX - snakeHead.x < 0) && (xDiff > yDiff)) {
     newDirection = "left";
   }
   // Upper left half
-  else if((mouseY - snakeHead.getY() < 0) && (mouseX - snakeHead.getX() < 0) && xDiff < yDiff) {
+  else if((mouseY - snakeHead.y < 0) && (mouseX - snakeHead.x < 0) && xDiff < yDiff) {
     newDirection = "up";
   }
   // Upper right half
-  else if((mouseY - snakeHead.getY() < 0) && (mouseX - snakeHead.getX() > 0) && xDiff < yDiff) {
+  else if((mouseY - snakeHead.y < 0) && (mouseX - snakeHead.x > 0) && xDiff < yDiff) {
     newDirection = "up";
   }
-  else if((mouseX - snakeHead.getX() > 0) && xDiff > yDiff) {
+  else if((mouseX - snakeHead.x > 0) && xDiff > yDiff) {
     newDirection = "right";
   }
   // Lower left half
-  else if((mouseY - snakeHead.getY() > 0) && (mouseX - snakeHead.getX() < 0) && xDiff < yDiff) {
+  else if((mouseY - snakeHead.y > 0) && (mouseX - snakeHead.x < 0) && xDiff < yDiff) {
     newDirection = "down";
   }
   // Lower right half
-  else if((mouseY - snakeHead.getY() > 0) && (mouseX - snakeHead.getX() > 0) && xDiff < yDiff) {
+  else if((mouseY - snakeHead.y > 0) && (mouseX - snakeHead.x > 0) && xDiff < yDiff) {
     newDirection = "down";
   }
   // Can't turn backwards
@@ -238,43 +213,44 @@ function calculateSnakeDirection(mouseX, mouseY, snakeHead) {
 
 async function main() {
   let snakeHead = new SnakeHead(startX, startY);
-  let snakeBody = new SnakeBody(snakeHead.getX(), snakeHead.getY()+30, snakeHead);
-  snakeBody.child = snakeBody;
-  let game = new Game(snakeHead, snakeBody);
+  let snakeTail = new SnakeTail(snakeHead.x, snakeHead.y+60, snakeHead);
+  snakeHead.child = snakeTail;
+  let game = new Game(snakeHead, snakeTail);
+
   c.addEventListener('click', (e) => {
     const x = e.offsetX;
     const y = e.offsetY;
     snakeHead.setDirection(calculateSnakeDirection(x, y, snakeHead));
-    // TODO: Fiks ledd (legg til Tail i Game hver gang man snur, hvor forelder er siste eksisterende Tail)
-    // new tail etter head, hook sammen med
-    let snakeBody2 = new SnakeBody(snakeBody.getX(), snakeBody.getY()+30, snakeBody);
   });
+
   while(!game.gameOver) {
     await sleep(800);
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    // snakeHead.updateHead();
-    // snakeBody.updateTail();
-    // game.checkGameOver();
-    // game.checkPrize();
-    // game.updatePrize();
-    let snakeBody2 = new SnakeBody(snakeBody.getX(), snakeBody.getY()+30, snakeBody);
-    game.addTail(snakeBody2)
-    let snakeBody3 = new SnakeBody(snakeBody2.getX(), snakeBody2.getY()+30, snakeBody2);
-    game.addTail(snakeBody3)
-    let snakeBody4 = new SnakeBody(snakeBody3.getX()+30, snakeBody3.getY(), snakeBody3);
-    game.addTail(snakeBody4)
-    // snakeBody2.updateTail();
-    game.drawSnake();
-    break
-
-    await sleep(800);
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    snakeHead.updateHead();
-    snakeBody.updateTail();
-    await sleep(800);
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    snakeHead.updateHead();
-    snakeBody.updateTail();
+    // Won prizes, add square
+    // kep old tail position -> calculate and draw new positions -> if head grabs prize, add tail
+    // add tail: snakeTail, old tail position, link to old tail, link game to new tail
+    const tempTail = game.snakeTail;
+    tail = game.snakeTail;
+    while(!!tail.parent) {
+      tail.updateSquare("black", tail.parent.x, tail.parent.y, tail.getWidth(), tail.getHeight());
+      tail = tail.parent;
+    }
+    snakeHead.moveHead();
+    // Update score and add to snake if it found a prize
+    if (game.checkPrize()) {
+      // Update score
+      game.totalScore += prize_value;
+      document.getElementById("score").innerHTML = game.totalScore;
+      // Add new square
+      let snakeTail = new SnakeTail(tempTail.x, tempTail.y, tempTail);
+      game.snakeTail = snakeTail;
+      // Move prize
+      game.prize = new Square("red", getRandomInt(canvasWidth/elemSize)*elemSize, getRandomInt(canvasHeight/elemSize)*elemSize);;
+    }
+    // Draw prize
+    game.prize.updateSquare("red", game.prize.x, game.prize.y, elemSize, elemSize)
+    // Check if dead
+    game.checkGameOver();
   }
 }
 
