@@ -60,10 +60,10 @@ class Game {
   }
 
   movePrize(validPrizePos) {
-    // Move prize (if too slow, add hashmap)
+    // Move prize (if too slow, add hashmap: board-state, for each move remove tail and add new head pos)
     // Find legal coords. while snake is less than 2/3 the board, get a pos and check valid, if not get new one
     let tempPos = {"x": getRandomInt(canvasWidth/elemSize)*elemSize, "y": getRandomInt(canvasHeight/elemSize)*elemSize};
-    
+
     // Check that the prize isn't on an already occupied square
     let tail = this.snakeTail;
     while(!!tail){
@@ -82,7 +82,6 @@ class Game {
       return
     }
       this.movePrize(false)
-    // TODO: While snake is larger than 2/3 the board, get legal pos by looping through board and checking if it's free
   }
 }
 
@@ -147,30 +146,6 @@ class SnakeTail extends Square {
     this.alignment = "vertical";
   }
 
-  // x {
-  //   if(this.parent.direction === "left") {
-  //     return this.parent.x+this.length*elemSize;
-  //   }
-  //   if(this.parent.direction === "right") {
-  //     return this.parent.x-this.length*elemSize;
-  //   }
-  //   else {
-  //     return this.parent.x;
-  //   }
-  // }
-
-  // y {
-  //   if(this.parent.direction === "down") {
-  //     return this.parent.y-this.length*elemSize;
-  //   }
-  //   if(this.parent.direction === "up") {
-  //     return this.parent.y+this.length*elemSize;
-  //   }
-  //   else {
-  //     return this.parent.y;
-  //   }
-  // }
-
   getWidth() {
     // Horizontal tails are wide
     if(this.alignment == "horizontal") {
@@ -205,34 +180,28 @@ const startY = Math.floor(canvasWidth/(2*elemSize))*elemSize;
 const prize_value = 10;
 
 function calculateSnakeDirection(mouseX, mouseY, snakeHead) {
-  const xDiff = Math.abs(mouseX - snakeHead.x);
-  const yDiff = Math.abs(mouseY - snakeHead.y);
+  // på vei opp: click til høyre -> høyer, klikk til venstre -> venstre
+  // på vei ned: klikk til høyre -> høyre, klikk til venstre -> venstre
+  // på vei til venstre: klikk over -> opp, klikk under -> ned
+  // på vei til høyre: klikk over -> opp, klikk under -> ned
   let newDirection;
-  if((mouseX - snakeHead.x < 0) && (xDiff > yDiff)) {
-    newDirection = "left";
+  // klikk over hodet: klikk-y mindre enn hodet-y
+  if ((snakeHead.direction == "left") || (snakeHead.direction == "right")) {
+    if (mouseY < snakeHead.y) {
+      newDirection = "up";
+    } else {
+      newDirection = "down";
+    }
   }
-  // Upper left half
-  else if((mouseY - snakeHead.y < 0) && (mouseX - snakeHead.x < 0) && xDiff < yDiff) {
-    newDirection = "up";
+  // klikk til høyre: klikk-x større enn hodet-x
+  if ((snakeHead.direction == "up") || (snakeHead.direction == "down")) {
+    if (mouseX > snakeHead.x) {
+      newDirection = "right";
+    } else {
+      newDirection = "left";
+    }
   }
-  // Upper right half
-  else if((mouseY - snakeHead.y < 0) && (mouseX - snakeHead.x > 0) && xDiff < yDiff) {
-    newDirection = "up";
-  }
-  else if((mouseX - snakeHead.x > 0) && xDiff > yDiff) {
-    newDirection = "right";
-  }
-  // Lower left half
-  else if((mouseY - snakeHead.y > 0) && (mouseX - snakeHead.x < 0) && xDiff < yDiff) {
-    newDirection = "down";
-  }
-  // Lower right half
-  else if((mouseY - snakeHead.y > 0) && (mouseX - snakeHead.x > 0) && xDiff < yDiff) {
-    newDirection = "down";
-  }
-  // Can't turn backwards
-  const newDirectionIsValid = oppositeDirectionLookup(newDirection) === snakeHead.direction ? false : true
-  return newDirectionIsValid ? newDirection : snakeHead.direction
+  return newDirection;
 }
 
 async function main() {
