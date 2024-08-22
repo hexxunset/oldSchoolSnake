@@ -27,30 +27,27 @@ class Game {
     this.prize = new Square("red", getRandomInt(canvasWidth/elemSize)*elemSize, getRandomInt(canvasHeight/elemSize)*elemSize);
   }
 
-  checkRectContainsOtherRect(a, b) {
-    console.log("NOT IMPLEMENTED")
-    return !(
-      b.x < a.x ||
-      b.y < a.y ||
-      b.x + elemSize > a.x + elemSize ||
-      b.y + elemSize > a.y + elemSize
-    )
+  isSamePos(square1, square2) {
+    return (square1.x == square2.x && square1.y == square2.y);
   }
 
   checkGameOver() {
     // Hit a wall
     if((this.snakeHead.x == -elemSize) || (this.snakeHead.x == canvasWidth) || (this.snakeHead.y == -elemSize) || (this.snakeHead.y == canvasHeight)) {
       this.gameOver = true;
-      console.log("game over")
+      console.log("game over");
     }
     // Hit the tail if any part of the tail contains the head
-    // for(i=0; i<this.getNumTails; i++) {
-    //   if(this.checkRectContainsOtherRect(this.tails[i], this.snakeHead)) {
-    //     return true;
-    //   }
-    // }
-    else {
-      this.gameOver = false;
+    let tail = this.snakeTail;
+    while(!!tail.parent){
+      if (this.isSamePos(this.snakeHead, tail)) {
+        this.gameOver = true;
+        console.log("game over");
+        break;
+      }
+      else {
+        tail = tail.parent;
+      }
     }
   }
 
