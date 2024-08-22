@@ -2,15 +2,6 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
-function oppositeDirectionLookup(direction) {
-  return {
-    "up": "down",
-    "down": "up",
-    "left": "right",
-    "right": "left"
-  }[direction]
-}
-
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -52,7 +43,7 @@ class Game {
   }
 
   checkPrize() {
-    // Check if there is a prize where the snakehead went, generate new prize if necessary
+    // Check if there is a prize where the snakehead went
     if((this.snakeHead.x == this.prize.x) && (this.snakeHead.y == this.prize.y)) {
       return true;
     }
@@ -90,10 +81,6 @@ class Square {
     this.updateSquare(color, x, y, elemSize, elemSize);
   }
 
-  setTail(newTail) {
-    this.tail = newTail;
-  }
-
   getWidth() {
     return elemSize;
   }
@@ -119,6 +106,29 @@ class SnakeHead extends Square {
 
   setDirection(newDirection) {
     this.direction = newDirection;
+  }
+
+  calculateSnakeDirection(mouseX, mouseY) {
+    // på vei opp: click til høyre -> høyer, klikk til venstre -> venstre
+    // på vei ned: klikk til høyre -> høyre, klikk til venstre -> venstre
+    // på vei til venstre: klikk over -> opp, klikk under -> ned
+    // på vei til høyre: klikk over -> opp, klikk under -> ned
+    // klikk over hodet: klikk-y mindre enn hodet-y
+    if ((this.direction == "left") || (this.direction == "right")) {
+      if (mouseY < this.y) {
+        this.direction = "up";
+      } else {
+        this.direction = "down";
+      }
+    }
+    // klikk til høyre: klikk-x større enn hodet-x
+    else if ((this.direction == "up") || (this.direction == "down")) {
+      if (mouseX > this.x) {
+        this.direction = "right";
+      } else {
+        this.direction = "left";
+      }
+    }
   }
 
   moveHead() {
@@ -168,7 +178,6 @@ class SnakeTail extends Square {
 }
 
 
-
 let c = document.getElementById("snakeCanvas");
 let ctx = c.getContext("2d");
 
@@ -179,31 +188,6 @@ const startX = Math.floor(canvasWidth/(2*elemSize))*elemSize;
 const startY = Math.floor(canvasWidth/(2*elemSize))*elemSize;
 const prize_value = 10;
 
-function calculateSnakeDirection(mouseX, mouseY, snakeHead) {
-  // på vei opp: click til høyre -> høyer, klikk til venstre -> venstre
-  // på vei ned: klikk til høyre -> høyre, klikk til venstre -> venstre
-  // på vei til venstre: klikk over -> opp, klikk under -> ned
-  // på vei til høyre: klikk over -> opp, klikk under -> ned
-  let newDirection;
-  // klikk over hodet: klikk-y mindre enn hodet-y
-  if ((snakeHead.direction == "left") || (snakeHead.direction == "right")) {
-    if (mouseY < snakeHead.y) {
-      newDirection = "up";
-    } else {
-      newDirection = "down";
-    }
-  }
-  // klikk til høyre: klikk-x større enn hodet-x
-  if ((snakeHead.direction == "up") || (snakeHead.direction == "down")) {
-    if (mouseX > snakeHead.x) {
-      newDirection = "right";
-    } else {
-      newDirection = "left";
-    }
-  }
-  return newDirection;
-}
-
 async function main() {
   let snakeHead = new SnakeHead(startX, startY);
   let snakeTail = new SnakeTail(snakeHead.x, snakeHead.y+elemSize, snakeHead);
@@ -213,7 +197,7 @@ async function main() {
   c.addEventListener('click', (e) => {
     const x = e.offsetX;
     const y = e.offsetY;
-    snakeHead.setDirection(calculateSnakeDirection(x, y, snakeHead));
+    snakeHead.calculateSnakeDirection(x, y);
   });
 
   while(!game.gameOver) {
@@ -253,7 +237,4 @@ async function main() {
 main()
 
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
