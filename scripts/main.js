@@ -30,7 +30,7 @@ class Game {
   isSamePos(square1, square2) {
     return (square1.x == square2.x && square1.y == square2.y);
   }
-
+  
   checkGameOver() {
     // Hit a wall
     if((this.snakeHead.x == -elemSize) || (this.snakeHead.x == canvasWidth) || (this.snakeHead.y == -elemSize) || (this.snakeHead.y == canvasHeight)) {
@@ -57,6 +57,32 @@ class Game {
       return true;
     }
     return false
+  }
+
+  movePrize(validPrizePos) {
+    // Move prize (if too slow, add hashmap)
+    // Find legal coords. while snake is less than 2/3 the board, get a pos and check valid, if not get new one
+    let tempPos = {"x": getRandomInt(canvasWidth/elemSize)*elemSize, "y": getRandomInt(canvasHeight/elemSize)*elemSize};
+    
+    // Check that the prize isn't on an already occupied square
+    let tail = this.snakeTail;
+    while(!!tail){
+      if (this.isSamePos(tempPos, tail)) {
+        validPrizePos = false;
+        break;
+      }
+      else {
+        validPrizePos = true;
+        tail = tail.parent;
+      }
+    }
+    // Use current position for prize
+    if (validPrizePos) {
+      this.prize = new Square("red", tempPos.x, tempPos.y);
+      return
+    }
+      this.movePrize(false)
+    // TODO: While snake is larger than 2/3 the board, get legal pos by looping through board and checking if it's free
   }
 }
 
@@ -243,7 +269,7 @@ async function main() {
       let snakeTail = new SnakeTail(tempTail.x, tempTail.y, tempTail);
       game.snakeTail = snakeTail;
       // Move prize
-      game.prize = new Square("red", getRandomInt(canvasWidth/elemSize)*elemSize, getRandomInt(canvasHeight/elemSize)*elemSize);;
+      game.movePrize(validPrizePos=false);
       // Increase speed
       game.sleepTime -= 10;
       console.log(game.sleepTime);
