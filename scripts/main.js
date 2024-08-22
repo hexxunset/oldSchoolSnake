@@ -1,10 +1,3 @@
-const elemSize = 60;
-const canvasWidth = 900;
-const canvasHeight = 1200;
-const startX = 10*elemSize;
-const startY = 10*elemSize;
-const prize_value = 10;
-
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
@@ -25,6 +18,7 @@ function sleep(ms) {
 
 class Game {
   constructor(snakeHead, snakeTail) {
+    this.sleepTime = 800;
     this.totalScore = 0;
     this.gameOver = false;
     this.snakeHead = snakeHead;
@@ -180,6 +174,13 @@ class SnakeTail extends Square {
 let c = document.getElementById("snakeCanvas");
 let ctx = c.getContext("2d");
 
+const elemSize = 100;
+const canvasWidth = c.width;
+const canvasHeight = c.height;
+const startX = Math.floor(canvasWidth/(2*elemSize))*elemSize;
+const startY = Math.floor(canvasWidth/(2*elemSize))*elemSize;
+const prize_value = 10;
+
 function calculateSnakeDirection(mouseX, mouseY, snakeHead) {
   const xDiff = Math.abs(mouseX - snakeHead.x);
   const yDiff = Math.abs(mouseY - snakeHead.y);
@@ -213,7 +214,7 @@ function calculateSnakeDirection(mouseX, mouseY, snakeHead) {
 
 async function main() {
   let snakeHead = new SnakeHead(startX, startY);
-  let snakeTail = new SnakeTail(snakeHead.x, snakeHead.y+60, snakeHead);
+  let snakeTail = new SnakeTail(snakeHead.x, snakeHead.y+elemSize, snakeHead);
   snakeHead.child = snakeTail;
   let game = new Game(snakeHead, snakeTail);
 
@@ -224,7 +225,7 @@ async function main() {
   });
 
   while(!game.gameOver) {
-    await sleep(800);
+    await sleep(game.sleepTime);
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     // Won prizes, add square
     // kep old tail position -> calculate and draw new positions -> if head grabs prize, add tail
@@ -246,6 +247,9 @@ async function main() {
       game.snakeTail = snakeTail;
       // Move prize
       game.prize = new Square("red", getRandomInt(canvasWidth/elemSize)*elemSize, getRandomInt(canvasHeight/elemSize)*elemSize);;
+      // Increase speed
+      game.sleepTime -= 10;
+      console.log(game.sleepTime);
     }
     // Draw prize
     game.prize.updateSquare("red", game.prize.x, game.prize.y, elemSize, elemSize)
