@@ -25,7 +25,7 @@ class Game {
     this.snakeHead = snakeHead;
     this.snakeTail = snakeTail;
     this.length = 1;
-    this.prize = new Square("red", utils.getRandomInt(canvasWidth/elemSize)*elemSize, utils.getRandomInt(canvasHeight/elemSize)*elemSize);
+    this.prize = new Square("darkred", utils.getRandomInt(canvasWidth/elemSize)*elemSize, utils.getRandomInt(canvasHeight/elemSize)*elemSize);
   }
 
   updateSnake() {
@@ -55,7 +55,7 @@ class Game {
       console.log(this.sleepTime);
     }
     // Draw prize
-    this.prize.drawSquare("red", this.prize.x, this.prize.y, elemSize, elemSize)
+    this.prize.drawSquare("darkred", this.prize.x, this.prize.y, elemSize, elemSize)
   }
 
   isSamePos(square1, square2) {
@@ -109,7 +109,7 @@ class Game {
     }
     // Use current position for prize
     if (validPrizePos) {
-      this.prize = new Square("red", tempPos.x, tempPos.y);
+      this.prize = new Square("darkred", tempPos.x, tempPos.y);
       return
     }
       this.movePrize(false)

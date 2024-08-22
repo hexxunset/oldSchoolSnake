@@ -14,9 +14,8 @@ body {
 }
 
 #headerContainer {
-  background-color: white;
-  opacity: 70%;
-  margin: 48px calc((100vw - 700px)/2);
+  width: 901.6px;
+  margin: 48px auto;
 }
 
 h1 {
@@ -39,7 +38,7 @@ var {
 }
 
 #snakeCanvas {
-  background-color: lightblue;
+  background-color: rgb(230, 230, 230);
   margin: 0 auto;
   display: block;
   border: 1px solid black;
