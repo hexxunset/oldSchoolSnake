@@ -1,18 +1,20 @@
-function getRandomInt(max) {
+class Utils {
+  getRandomInt(max) {
     return Math.floor(Math.random() * max);
-}
+  }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
-function oppositeDirectionLookup(direction) {
-  return {
-    "up": "down",
-    "down": "up",
-    "left": "right",
-    "right": "left"
-  }[direction]
+  oppositeDirectionLookup(direction) {
+    return {
+      "up": "down",
+      "down": "up",
+      "left": "right",
+      "right": "left"
+    }[direction]
+  }
 }
 
 class Game {
@@ -23,15 +25,37 @@ class Game {
     this.snakeHead = snakeHead;
     this.snakeTail = snakeTail;
     this.length = 1;
-    this.prize = new Square("red", getRandomInt(canvasWidth/elemSize)*elemSize, getRandomInt(canvasHeight/elemSize)*elemSize);
+    this.prize = new Square("red", utils.getRandomInt(canvasWidth/elemSize)*elemSize, utils.getRandomInt(canvasHeight/elemSize)*elemSize);
   }
-  drawSnake() {
+
+  updateSnake() {
     let tail = this.snakeTail;
     while(!!tail.parent) {
       tail.drawSquare("black", tail.parent.x, tail.parent.y, tail.getWidth(), tail.getHeight());
       tail = tail.parent;
     }
     this.snakeHead.moveHead();
+  }
+
+  updateScore(tempTail) {
+    // Update score and add to snake if it found a prize
+    // kep old tail position -> calculate and draw new positions -> if head grabs prize, add tail
+    // add tail: snakeTail, old tail position, link to old tail, link game to new tail
+    if (this.checkPrize()) {
+      // Update score
+      this.totalScore += prize_value;
+      document.getElementById("score").innerHTML = this.totalScore;
+      // Add new square
+      let snakeTail = new SnakeTail(tempTail.x, tempTail.y, tempTail);
+      this.snakeTail = snakeTail;
+      // Move prize
+      this.movePrize(false);
+      // Increase speed
+      this.sleepTime -= 10;
+      console.log(this.sleepTime);
+    }
+    // Draw prize
+    this.prize.drawSquare("red", this.prize.x, this.prize.y, elemSize, elemSize)
   }
 
   isSamePos(square1, square2) {
@@ -69,7 +93,7 @@ class Game {
   movePrize(validPrizePos) {
     // Move prize (if too slow, add hashmap: board-state, for each move remove tail and add new head pos)
     // Find legal coords. while snake is less than 2/3 the board, get a pos and check valid, if not get new one
-    let tempPos = {"x": getRandomInt(canvasWidth/elemSize)*elemSize, "y": getRandomInt(canvasHeight/elemSize)*elemSize};
+    let tempPos = {"x": utils.getRandomInt(canvasWidth/elemSize)*elemSize, "y": utils.getRandomInt(canvasHeight/elemSize)*elemSize};
 
     // Check that the prize isn't on an already occupied square
     let tail = this.snakeTail;
@@ -148,7 +172,7 @@ class SnakeHead extends Square {
       }
     }
     // Ensure double-clicking within one timeframe doesn't make the snake go backwards
-    if (oppositeDirectionLookup(newDirection) != this.previousMovement) {
+    if (utils.oppositeDirectionLookup(newDirection) != this.previousMovement) {
       this.direction = newDirection;
     }
   }
@@ -209,6 +233,7 @@ const canvasHeight = c.height;
 const startX = Math.floor(canvasWidth/(2*elemSize))*elemSize;
 const startY = Math.floor(canvasWidth/(2*elemSize))*elemSize;
 const prize_value = 10;
+const utils = new Utils();
 
 async function main() {
   // Initialize snake and game
@@ -225,39 +250,19 @@ async function main() {
   });
 
   while(!game.gameOver) {
-    await sleep(game.sleepTime);
+    await utils.sleep(game.sleepTime);
     // Log where the snake moved immediately to ensure it doesn't accidentally go backwards
     game.snakeHead.previousMovement = game.snakeHead.direction;
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     // Grab tail of snake in case a new square needs to be added
     const tempTail = game.snakeTail;
-    // Draw new position for snake
-    game.drawSnake();
-    // Won prizes, add square
-    // kep old tail position -> calculate and draw new positions -> if head grabs prize, add tail
-    // add tail: snakeTail, old tail position, link to old tail, link game to new tail
-    // Update score and add to snake if it found a prize
-    if (game.checkPrize()) {
-      // Update score
-      game.totalScore += prize_value;
-      document.getElementById("score").innerHTML = game.totalScore;
-      // Add new square
-      let snakeTail = new SnakeTail(tempTail.x, tempTail.y, tempTail);
-      game.snakeTail = snakeTail;
-      // Move prize
-      game.movePrize(validPrizePos=false);
-      // Increase speed
-      game.sleepTime -= 10;
-      console.log(game.sleepTime);
-    }
-    // Draw prize
-    game.prize.drawSquare("red", game.prize.x, game.prize.y, elemSize, elemSize)
+    // Calculate and draw new position for snake
+    game.updateSnake();
+    // Update score, extend snake, move prize and increase speed if pize was found
+    game.updateScore(tempTail);
     // Check if dead
     game.checkGameOver();
   }
 }
 
 main()
-
-
-
